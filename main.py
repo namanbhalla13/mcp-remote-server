@@ -1,66 +1,55 @@
-import random
 from fastmcp import FastMCP
+import random
+import json
 
-mcp = FastMCP("Remote Calculator Server")
+# Create the FastMCP server instance
+mcp = FastMCP("Simple Calculator Server")
 
-# ----------------------
-# In-memory storage
-# ----------------------
-random_history = []
 
-# ----------------------
-# Tools
-# ----------------------
-
+# Tool: Add two numbers
 @mcp.tool
-def add(a: float, b: float) -> float:
-    """Add two numbers."""
+def add(a: int, b: int) -> int:
+    """Add two numbers together.
+
+    Args:
+        a: First number
+        b: Second number
+
+    Returns:
+        The sum of a and b
+    """
     return a + b
 
 
+# Tool: Generate a random number
 @mcp.tool
-def random_in_range(min_value: int, max_value: int) -> int:
-    """Generate a random integer within a given range (inclusive)."""
-    if min_value > max_value:
-        return "Error: min_value must be <= max_value"
+def random_number(min_val: int = 1, max_val: int = 100) -> int:
+    """Generate a random number within a range.
 
-    value = random.randint(min_value, max_value)
-    random_history.append(value)
-    return value
+    Args:
+        min_val: Minimum value (default: 1)
+        max_val: Maximum value (default: 100)
+
+    Returns:
+        A random integer between min_val and max_val
+    """
+    return random.randint(min_val, max_val)
 
 
-# ----------------------
-# Resources
-# ----------------------
-
+# Resource: Server information
 @mcp.resource("info://server")
-def server_info() -> dict:
-    """Basic metadata about the MCP server."""
-    return {
-        "name": "Remote Calculator Server",
+def server_info() -> str:
+    """Get information about this server."""
+    info = {
+        "name": "Simple Calculator Server",
         "version": "1.0.0",
-        "tools_available": ["add", "random_in_range"],
+        "description": "A basic MCP server with math tools",
+        "tools": ["add", "random_number"],
+        "author": "Your Name"
     }
+    return json.dumps(info, indent=2)
 
 
-@mcp.resource("data://random-history")
-def get_random_history() -> list:
-    """Return history of generated random numbers."""
-    return random_history
-
-
-@mcp.resource("info://operations")
-def supported_operations() -> list:
-    """Return list of supported operations."""
-    return ["addition", "random number generation"]
-
-# ----------------------
-# Run as HTTP Server
-# ----------------------
-
+# Start the server
 if __name__ == "__main__":
-    mcp.run(
-        transport="http",
-        host="0.0.0.0",
-        port=8000
-    )
+    mcp.run(transport="http", host="0.0.0.0", port=8000)
